@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    restart: always # Если сервер упадет, база сама поднимется
+    volumes:
+      - prod_db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=prod_db
+      - POSTGRES_USER=prod_user
+      - POSTGRES_PASSWORD=secure_pass_here
+
+  web:
+    build: .
+    # Используем Gunicorn (он мощнее и быстрее для реальных людей)
+    # Укажи тут путь к своему wsgi. Обычно это 'название_проекта.wsgi'
+    command: gunicorn src.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - "80:8000" # Проект будет доступен просто по IP или домену
+    environment:
+      - DEBUG=0
+      - DB_HOST=db
+    depends_on:
+      - db
+
+volumes:
+  prod_db_data:

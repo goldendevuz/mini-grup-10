@@ -1,0 +1,23 @@
+# .idea yozildi
+.idea/
+.vscode/
+
+# virtualni muhit ham yozildi
+venv/
+env/
+
+# pycache larham yozildi
+__pycache__/
+*.pyc
+*.pyo
+
+# sqlite
+db.sqlite3
+db.sqlite3-journal
+
+# .env ni yashirish kerak
+.env
+
+# musor ekan
+Thumbs.db
+.DS_Store

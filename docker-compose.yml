@@ -1,0 +1,31 @@
+services:
+  # Наша база данных
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=django_db
+      - POSTGRES_USER=django_user
+      - POSTGRES_PASSWORD=django_pass
+
+  # Наш Django проект
+  web:
+    build: .
+    # Запускаем обычный сервер для разработки
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app # Это важно: изменения в коде на компе сразу полетят в контейнер
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DB_HOST=db
+      - DB_NAME=django_db
+      - DB_USER=django_user
+      - DB_PASS=django_pass
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
