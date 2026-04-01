@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from core.models.auth_models import User
 from rest_framework.exceptions import AuthenticationFailed
 from core.models.auth_models import VerifivationCode
+from rest_framework.permissions import IsAuthenticated
+
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -120,14 +122,24 @@ class LoginView(APIView):
         if not user.check_password(str(password)):
             raise AuthenticationFailed("password noto'g'ri")
 
+        token, _ = Token.objects.get_or_create(user=user)
+
         return Response({
             "email": user.email,
-            "message": "successfull you are login"
+            "message": "successfull you are login",
+            "token": token.key,
         })
 
+
 class LogoutView(APIView):
+    permission_classes = [IsAuthenticated] # Только авторизованные
+
     def post(self, request):
-        logout(request)
+        try:
+            # Удаляем токен текущего пользователя
+            request.user.auth_token.delete()
+        except:
+            pass
         return Response({
             "message": "successfully logout"
         }, status=200)
