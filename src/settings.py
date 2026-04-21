@@ -10,24 +10,31 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+import dj_database_url
+
+from .envs import (
+    EMAIL_HOST_USER, EMAIL_HOST_PASSWORD,
+    DB_URL, SQLITE_DB,
+    SECRET_KEY, DEBUG,
+    ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS, CORS_ALLOWED_ORIGINS,
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&iakrhsw*(bpglwe8g#xgq_d5ju!zh1hjjcpr(z26q1i2($j#q'
+SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ALLOWED_HOSTS
+INTERNAL_IPS = ALLOWED_HOSTS
+CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
+CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS
 
-AUTH_USER_MODEL = 'core.User'
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,13 +44,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+THIRD_APPS = {
     'rest_framework',
     'rest_framework.authtoken',
+}
+
+LOCAL_APPS = [
     'core',
 ]
 
+INSTALLED_APPS += THIRD_APPS
+INSTALLED_APPS += LOCAL_APPS
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -102,37 +119,61 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tashkent'
 
 USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-STATIC_URL = 'static/'
-
-
-import os
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'USER': os.environ.get('DB_USER', 'django_user'),
-        'PASSWORD': os.environ.get('DB_PASS', 'django_pass'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': '5432',
+if SQLITE_DB:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        },
     }
-}
+else:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DB_URL,  # e.g. postgres://user:pass@host:5432/dbname
+            conn_max_age=600,
+            ssl_require=False,  # set True if needed (e.g. cloud DB)
+        )
+    }
 
-# settings.py
+# if DEBUG:
+#     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# else:
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'programmer220212@gmail.com'
-EMAIL_HOST_PASSWORD = 'gaqg uubw veqh ecnh'
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
 
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+}
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WHITENOISE_MANIFEST_STRICT = False
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media/'
+
+# Collect static files here
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# URL to access static files
+STATIC_URL = 'static/'
+
+AUTH_USER_MODEL = 'core.User'

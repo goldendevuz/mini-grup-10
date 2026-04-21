@@ -1,13 +1,11 @@
 services:
   db:
-    image: postgres:15
+    image: postgres:17-alpine
     restart: always # Если сервер упадет, база сама поднимется
     volumes:
       - prod_db_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=prod_db
-      - POSTGRES_USER=prod_user
-      - POSTGRES_PASSWORD=secure_pass_here
+    env_file:
+      - .envs/.production/.postgres
 
   web:
     build: .
@@ -16,9 +14,8 @@ services:
     command: gunicorn src.wsgi:application --bind 0.0.0.0:8000
     ports:
       - "80:8000" # Проект будет доступен просто по IP или домену
-    environment:
-      - DEBUG=0
-      - DB_HOST=db
+    env_file:
+      - .envs/.production/.django
     depends_on:
       - db
 
